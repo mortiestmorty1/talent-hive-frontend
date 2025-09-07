@@ -1,0 +1,344 @@
+import React, { useState, useEffect } from "react";
+import { categories } from "../../../utils/categories";
+import ImageUpload from "../../../components/ImageUpload";
+import axios from "axios";
+import { ADD_GIG_ROUTE } from "../../../utils/constants";
+import { useRouter } from "next/router";
+import { useCookies } from "react-cookie";
+import { useStateProvider } from "../../../context/StateContext";
+import { toast } from "react-toastify";
+
+const create = () => {
+  const [cookies] = useCookies();
+  const router = useRouter();
+  const [{ isSeller, userInfo }] = useStateProvider();
+
+  useEffect(() => {
+    if (!isSeller) {
+      toast.error('Only sellers/freelancers can create gigs. Switch to seller mode to create gigs.');
+      router.push('/buyer/orders');
+      return;
+    }
+  }, [isSeller, router]);
+  const [files, setFiles] = useState([]);
+  const [features, setFeatures] = useState([]);
+  const [data, setData] = useState({
+    title: "",
+    category: "",
+    description: "",
+    time: 0,
+    revisions: 0,
+    feature: "",
+    price: 0,
+    shortDesc: "",
+  });
+
+  const handleChange = (e) => {
+    setData({ ...data, [e.target.name]: e.target.value });
+  };
+
+  const addFeature = () => {
+    if (data.feature) {
+      setFeatures([...features, data.feature]);
+      setData({ ...data, feature: "" });
+    }
+  };
+
+  const removeFeature = (index) => {
+    const clonedFeatures = [...features];
+    clonedFeatures.splice(index, 1);
+    setFeatures(clonedFeatures);
+  };
+
+  const addGig = async () => {
+    try {
+      console.log("=== FRONTEND GIG CREATION DEBUG ===");
+      const { category, description, price, revisions, time, title, shortDesc } = data;
+      
+      console.log("Form data:", { category, description, price, revisions, time, title, shortDesc });
+      console.log("Features:", features);
+      console.log("Files:", files);
+      
+      // Validation
+      if (!category) {
+        toast.error("Please select a category");
+        return;
+      }
+      if (!description) {
+        toast.error("Please enter a description");
+        return;
+      }
+      if (!title) {
+        toast.error("Please enter a title");
+        return;
+      }
+      if (!features.length) {
+        toast.error("Please add at least one feature");
+        return;
+      }
+      if (!files.length) {
+        toast.error("Please upload at least one image");
+        return;
+      }
+      if (!price || price <= 0) {
+        toast.error("Please enter a valid price");
+        return;
+      }
+      if (!shortDesc) {
+        toast.error("Please enter a short description");
+        return;
+      }
+      if (!revisions || revisions <= 0) {
+        toast.error("Please enter number of revisions");
+        return;
+      }
+      if (!time || time <= 0) {
+        toast.error("Please enter delivery time");
+        return;
+      }
+
+      const formData = new FormData();
+      files.forEach((file) => {
+        console.log("Adding file:", file.name);
+        formData.append("images", file);
+      });
+
+      const gigData = {
+        title,
+        description,
+        category,
+        features,
+        price,
+        revisions,
+        time,
+        shortDesc,
+      };
+
+      console.log("Sending request to:", ADD_GIG_ROUTE);
+      console.log("Gig data as params:", gigData);
+
+      const response = await axios.post(ADD_GIG_ROUTE, formData, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${cookies.jwt}`,
+        },
+        params: gigData,
+      });
+
+      console.log("Response:", response);
+
+      if (response.status === 201) {
+        toast.success("Gig created successfully!");
+        router.push("/seller/gigs");
+      }
+    } catch (error) {
+      console.error("Error creating gig:", error);
+      
+      if (error.response) {
+        // Server responded with error status
+        console.error("Error response:", error.response.data);
+        console.error("Error status:", error.response.status);
+        toast.error(`Failed to create gig: ${error.response.data || 'Server error'}`);
+      } else if (error.request) {
+        // Request was made but no response received
+        console.error("No response received:", error.request);
+        toast.error("Failed to create gig: No response from server");
+      } else {
+        // Something else happened
+        console.error("Error message:", error.message);
+        toast.error(`Failed to create gig: ${error.message}`);
+      }
+    }
+  };
+
+  const inputClassName =
+    "block p-4 w-full text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50  focus:ring-blue-500 focus:border-blue-500";
+  const labelClassName = "mb-2 text-lg font-medium text-gray-900";
+
+  // Don't render anything if user is not a seller
+  if (!isSeller) {
+    return null;
+  }
+
+  return (
+    <div className="min-h-[80vh] my-10 mt-0 px-32">
+      <h1 className="text-6xl text-gray-900 mb-5">Create a new Gig</h1>
+      <h3 className="text-3xl text-gray-900 mb-5">
+        Enter the details to create the gig
+      </h3>
+      <form className="flex flex-col gap-5 mt-10">
+        <div className="grid grid-cols-2 gap-11">
+          <div>
+            <label htmlFor="title" className={labelClassName}>
+              Gig Title
+            </label>
+            <input
+              type="text"
+              name="title"
+              value={data.title}
+              onChange={handleChange}
+              id="title"
+              className={inputClassName}
+              placeholder="eg. I will do something, I am really good at"
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="category" className={labelClassName}>
+              Select a Category
+            </label>
+            <select
+              name="category"
+              id="category"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-4"
+              onChange={handleChange}
+              defaultValue="Choose a Category"
+            >
+              {categories.map(({ name }) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div>
+          <label htmlFor="description" className={labelClassName}>
+            Gig Description
+          </label>
+          <textarea
+            name="description"
+            id="description"
+            className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Write a short description"
+            value={data.description}
+            onChange={handleChange}
+          ></textarea>
+        </div>
+        <div className="grid grid-cols-2 gap-11">
+          <div>
+            <label htmlFor="delivery">Delivery Time</label>
+            <input
+              type="number"
+              className={inputClassName}
+              id="delivery"
+              name="time"
+              value={data.time}
+              onChange={handleChange}
+              min={1}
+              placeholder="Minimum Delivery Time"
+            />
+          </div>
+          <div>
+            <label htmlFor="revision" className={labelClassName}>
+              Revisions
+            </label>
+            <input
+              type="number"
+              id="revision"
+              className={inputClassName}
+              placeholder="Max Number of Revisions"
+              name="revisions"
+              value={data.revisions}
+              onChange={handleChange}
+              min={0}
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-11">
+          <div>
+            <label htmlFor="features" className={labelClassName}>
+              Features
+            </label>
+            <div className="flex gap-3 items-center mb-5">
+              <input
+                type="text"
+                id="features"
+                className={inputClassName}
+                placeholder="Enter a Feature Name"
+                name="feature"
+                value={data.feature}
+                onChange={handleChange}
+              />
+              <button
+                type="button"
+                className="focus:outline-none text-white bg-blue-700 hover:bg-blue-800  font-medium  text-lg px-10 py-3 rounded-md "
+                onClick={addFeature}
+              >
+                Add
+              </button>
+            </div>
+            <ul className="flex gap-2 flex-wrap">
+              {features.map((feature, index) => {
+                return (
+                  <li
+                    key={feature + index.toString()}
+                    className="flex gap-2 items-center py-2.5 px-5 mr-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-red-700 cursor-pointer hover:border-red-200"
+                  >
+                    <span>{feature}</span>
+                    <span
+                      className="text-red-700"
+                      onClick={() => removeFeature(index)}
+                    >
+                      X
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <div>
+            <label htmlFor="image" className={labelClassName}>
+              Gig Images
+            </label>
+            <div>
+              <ImageUpload files={files} setFile={setFiles} />
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-11">
+          <div>
+            <label htmlFor="shortDesc" className={labelClassName}>
+              Short Description
+            </label>
+            <input
+              type="text"
+              className={`${inputClassName}`}
+              id="shortDesc"
+              placeholder="Enter a short description."
+              name="shortDesc"
+              value={data.shortDesc}
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <label htmlFor="price" className={labelClassName}>
+              Gig Price ( $ )
+            </label>
+            <input
+              type="number"
+              className={`${inputClassName} w-1/5`}
+              id="price"
+              placeholder="Enter a price"
+              name="price"
+              value={data.price}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+        <div>
+          <button
+            className="border   text-lg font-semibold px-5 py-3   border-[#1DBF73] bg-[#1DBF73] text-white rounded-md"
+            type="button"
+            onClick={addGig}
+          >
+            Create
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default create;
