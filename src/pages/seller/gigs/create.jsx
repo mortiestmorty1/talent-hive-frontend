@@ -16,7 +16,7 @@ const create = () => {
   useEffect(() => {
     if (!isSeller) {
       toast.error('Only sellers/freelancers can create gigs. Switch to seller mode to create gigs.');
-      router.push('/buyer/orders');
+      router.push('/orders');
       return;
     }
   }, [isSeller, router]);

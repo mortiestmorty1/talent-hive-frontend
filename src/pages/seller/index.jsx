@@ -80,7 +80,7 @@ function Index() {
 
               <div
                 className="shadow-md h-max p-10 flex flex-col gap-2 cursor-pointer hover:shadow-xl transition-all duration-300"
-                onClick={() => router.push("/seller/orders")}
+                onClick={() => router.push("/orders")}
               >
                 <h2 className="text-xl">Total Orders</h2>
                 <h3 className="text-[#1DBF73] text-3xl font-extrabold">

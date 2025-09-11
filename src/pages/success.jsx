@@ -34,7 +34,7 @@ const success = () => {
 
     setTimeout(() => {
       if (payment_intent) {
-        router.push("/buyer/orders");
+        router.push("/orders");
       } else {
         router.push("/");
       }

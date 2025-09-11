@@ -108,14 +108,13 @@ const NavBar = () => {
   }, [router.pathname]);
 
   const handleOrdersNavigate = () => {
-    if (isSeller) router.push("/seller/orders");
-    router.push("/buyer/orders");
+    router.push("/orders");
   };
 
   const handleModeSwitch = () => {
     if (isSeller) {
       dispatch({ type: reducerCases.SWITCH_MODE });
-      router.push("/buyer/orders");
+      router.push("/orders");
     } else {
       dispatch({ type: reducerCases.SWITCH_MODE });
       router.push("/seller");
@@ -215,7 +214,7 @@ const NavBar = () => {
         callback: (e) => {
           e.stopPropagation();
           setIsContextMenuVisible(false);
-          router.push("/seller/orders");
+          router.push("/orders");
         },
       },
     ] : [
@@ -233,7 +232,7 @@ const NavBar = () => {
         callback: (e) => {
           e.stopPropagation();
           setIsContextMenuVisible(false);
-          router.push("/buyer/orders");
+          router.push("/orders");
         },
       },
     ]),
