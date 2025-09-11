@@ -1,19 +1,22 @@
 import "../styles/globals.css";
 import NavBar from "../components/NavBar";
 import Footer from "../components/Footer";
+import AuthWrapper from "../components/AuthWrapper";
 import NextNProgress from "nextjs-progressbar";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.min.css";
 
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { StateProvider } from "../context/StateContext";
+import { StateProvider, useStateProvider } from "../context/StateContext";
 import reducer, { initialState } from "../context/StateReducer";
 
-export default function App({ Component, pageProps }) {
-  const router = useRouter();
+// Component that can access the state context
+const AppContent = ({ Component, pageProps, router }) => {
+  const [{ showLoginModal, showSignupModal }] = useStateProvider();
+  
   return (
-    <StateProvider initialState={initialState} reducer={reducer}>
+    <>
       <Head>
         <link rel="shortcut icon" href="/favicon.ico" />
         <title>TalentHive</title>
@@ -32,6 +35,20 @@ export default function App({ Component, pageProps }) {
         </div>
         <Footer />
       </div>
+      
+      {/* Render modals globally */}
+      {(showLoginModal || showSignupModal) && (
+        <AuthWrapper type={showLoginModal ? "login" : "signup"} />
+      )}
+    </>
+  );
+};
+
+export default function App({ Component, pageProps }) {
+  const router = useRouter();
+  return (
+    <StateProvider initialState={initialState} reducer={reducer}>
+      <AppContent Component={Component} pageProps={pageProps} router={router} />
     </StateProvider>
   );
 }
