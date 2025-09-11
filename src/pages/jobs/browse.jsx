@@ -60,16 +60,6 @@ const BrowseJobs = () => {
   }, [filters, cookies.jwt]);
 
   useEffect(() => {
-    const { search } = router.query;
-    if (search) {
-      setSearchTerm(search);
-      searchJobs(search);
-    } else {
-      fetchJobs();
-    }
-  }, [router.query, searchJobs, fetchJobs]);
-
-  useEffect(() => {
     if (jobs.length > 0) {
       filterJobs();
     }
@@ -193,6 +183,16 @@ const BrowseJobs = () => {
       setLoading(false); // Set loading to false even on error
     }
   }, [filters, cookies.jwt]);
+
+  useEffect(() => {
+    const { search } = router.query;
+    if (search) {
+      setSearchTerm(search);
+      searchJobs(search);
+    } else {
+      fetchJobs();
+    }
+  }, [router.query, searchJobs, fetchJobs]);
 
   const handleFilterChange = (filterType, value) => {
     setFilters(prev => ({
