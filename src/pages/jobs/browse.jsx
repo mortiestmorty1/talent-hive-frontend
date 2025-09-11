@@ -150,6 +150,7 @@ const BrowseJobs = () => {
     }
 
     setIsSearching(true);
+    setLoading(true); // Set loading to true when starting search
     try {
       const searchParams = { searchTerm: searchQuery };
       
@@ -169,10 +170,12 @@ const BrowseJobs = () => {
       setJobs(data.jobs);
       setFilteredJobs(data.jobs);
       setIsSearching(false);
+      setLoading(false); // Set loading to false when search completes
     } catch (error) {
       console.error('Error searching jobs:', error);
       toast.error('Failed to search jobs');
       setIsSearching(false);
+      setLoading(false); // Set loading to false even on error
     }
   };
 
