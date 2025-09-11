@@ -57,8 +57,8 @@ const BrowseJobs = () => {
       }
       
       const { data } = await axios.get(BROWSE_JOBS_ROUTE, config);
-      setJobs(data);
-      setFilteredJobs(data);
+      setJobs(data.jobs);
+      setFilteredJobs(data.jobs);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching jobs:', error);
