@@ -46,15 +46,9 @@ const BrowseJobs = () => {
         config.headers = { Authorization: `Bearer ${cookies.jwt}` };
       }
       
-      console.log('Making browse request with config:', config);
-      console.log('Full browse URL:', BROWSE_JOBS_ROUTE);
       const { data } = await axios.get(BROWSE_JOBS_ROUTE, config);
-      console.log('Browse response data:', data);
-      console.log('Jobs from browse:', data.jobs);
-      console.log('Browse jobs array length:', data.jobs?.length);
       setJobs(data.jobs);
       setFilteredJobs(data.jobs);
-      console.log('Browse jobs state updated');
       setLoading(false);
     } catch (error) {
       console.error('Error fetching jobs:', error);
@@ -140,14 +134,11 @@ const BrowseJobs = () => {
   };
 
   const searchJobs = useCallback(async (searchQuery) => {
-    console.log('searchJobs called with:', searchQuery);
     if (!searchQuery.trim()) {
-      console.log('Empty search query, fetching all jobs');
       fetchJobs(); // Reset to all jobs if search is empty
       return;
     }
 
-    console.log('Starting search for:', searchQuery);
     setIsSearching(true);
     setLoading(true); // Set loading to true when starting search
     try {
@@ -159,33 +150,19 @@ const BrowseJobs = () => {
       if (filters.minBudget) searchParams.minBudget = filters.minBudget;
       if (filters.maxBudget) searchParams.maxBudget = filters.maxBudget;
       
-      console.log('Search params:', searchParams);
-      console.log('Search route:', SEARCH_JOBS_ROUTE);
-      
       // Only add auth header if user is logged in
       const config = { params: searchParams };
       if (cookies.jwt) {
         config.headers = { Authorization: `Bearer ${cookies.jwt}` };
-        console.log('Using auth header');
-      } else {
-        console.log('No auth header');
       }
       
-      console.log('Making request with config:', config);
-      console.log('Full URL being called:', `${SEARCH_JOBS_ROUTE}?${new URLSearchParams(searchParams)}`);
       const { data } = await axios.get(SEARCH_JOBS_ROUTE, config);
-      console.log('Search response data:', data);
-      console.log('Jobs from search:', data.jobs);
-      console.log('Jobs array length:', data.jobs?.length);
-      console.log('Setting jobs to:', data.jobs);
       setJobs(data.jobs);
       setFilteredJobs(data.jobs);
-      console.log('Jobs state updated');
       setIsSearching(false);
       setLoading(false); // Set loading to false when search completes
     } catch (error) {
       console.error('Error searching jobs:', error);
-      console.error('Error details:', error.response?.data);
       toast.error('Failed to search jobs');
       setIsSearching(false);
       setLoading(false); // Set loading to false even on error
@@ -193,24 +170,14 @@ const BrowseJobs = () => {
   }, [filters, cookies.jwt]);
 
   useEffect(() => {
-    console.log('useEffect triggered with router.query:', router.query);
     const { search } = router.query;
     if (search) {
-      console.log('Search query found:', search);
       setSearchTerm(search);
       searchJobs(search);
     } else {
-      console.log('No search query, fetching all jobs');
       fetchJobs();
     }
   }, [router.query, searchJobs, fetchJobs]);
-
-  // Debug effect to track jobs state changes
-  useEffect(() => {
-    console.log('Jobs state changed:', jobs);
-    console.log('Filtered jobs state changed:', filteredJobs);
-    console.log('Loading state:', loading);
-  }, [jobs, filteredJobs, loading]);
 
   const handleFilterChange = (filterType, value) => {
     setFilters(prev => ({
