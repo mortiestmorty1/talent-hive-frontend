@@ -46,11 +46,15 @@ const BrowseJobs = () => {
         config.headers = { Authorization: `Bearer ${cookies.jwt}` };
       }
       
+      console.log('Making browse request with config:', config);
+      console.log('Full browse URL:', BROWSE_JOBS_ROUTE);
       const { data } = await axios.get(BROWSE_JOBS_ROUTE, config);
       console.log('Browse response data:', data);
       console.log('Jobs from browse:', data.jobs);
+      console.log('Browse jobs array length:', data.jobs?.length);
       setJobs(data.jobs);
       setFilteredJobs(data.jobs);
+      console.log('Browse jobs state updated');
       setLoading(false);
     } catch (error) {
       console.error('Error fetching jobs:', error);
@@ -168,11 +172,15 @@ const BrowseJobs = () => {
       }
       
       console.log('Making request with config:', config);
+      console.log('Full URL being called:', `${SEARCH_JOBS_ROUTE}?${new URLSearchParams(searchParams)}`);
       const { data } = await axios.get(SEARCH_JOBS_ROUTE, config);
       console.log('Search response data:', data);
       console.log('Jobs from search:', data.jobs);
+      console.log('Jobs array length:', data.jobs?.length);
+      console.log('Setting jobs to:', data.jobs);
       setJobs(data.jobs);
       setFilteredJobs(data.jobs);
+      console.log('Jobs state updated');
       setIsSearching(false);
       setLoading(false); // Set loading to false when search completes
     } catch (error) {
@@ -185,14 +193,24 @@ const BrowseJobs = () => {
   }, [filters, cookies.jwt]);
 
   useEffect(() => {
+    console.log('useEffect triggered with router.query:', router.query);
     const { search } = router.query;
     if (search) {
+      console.log('Search query found:', search);
       setSearchTerm(search);
       searchJobs(search);
     } else {
+      console.log('No search query, fetching all jobs');
       fetchJobs();
     }
   }, [router.query, searchJobs, fetchJobs]);
+
+  // Debug effect to track jobs state changes
+  useEffect(() => {
+    console.log('Jobs state changed:', jobs);
+    console.log('Filtered jobs state changed:', filteredJobs);
+    console.log('Loading state:', loading);
+  }, [jobs, filteredJobs, loading]);
 
   const handleFilterChange = (filterType, value) => {
     setFilters(prev => ({
