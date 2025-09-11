@@ -50,10 +50,13 @@ const BrowseJobs = () => {
       if (filters.maxBudget) params.maxBudget = filters.maxBudget;
       if (filters.timeline !== 'all') params.timeline = filters.timeline;
       
-      const { data } = await axios.get(BROWSE_JOBS_ROUTE, {
-        headers: { Authorization: `Bearer ${cookies.jwt}` },
-        params
-      });
+      // Only add auth header if user is logged in
+      const config = { params };
+      if (cookies.jwt) {
+        config.headers = { Authorization: `Bearer ${cookies.jwt}` };
+      }
+      
+      const { data } = await axios.get(BROWSE_JOBS_ROUTE, config);
       setJobs(data);
       setFilteredJobs(data);
       setLoading(false);
@@ -156,10 +159,13 @@ const BrowseJobs = () => {
       if (filters.minBudget) searchParams.minBudget = filters.minBudget;
       if (filters.maxBudget) searchParams.maxBudget = filters.maxBudget;
       
-      const { data } = await axios.get(SEARCH_JOBS_ROUTE, {
-        headers: { Authorization: `Bearer ${cookies.jwt}` },
-        params: searchParams
-      });
+      // Only add auth header if user is logged in
+      const config = { params: searchParams };
+      if (cookies.jwt) {
+        config.headers = { Authorization: `Bearer ${cookies.jwt}` };
+      }
+      
+      const { data } = await axios.get(SEARCH_JOBS_ROUTE, config);
       setJobs(data.jobs);
       setFilteredJobs(data.jobs);
       setIsSearching(false);
