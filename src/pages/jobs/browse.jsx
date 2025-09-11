@@ -2,16 +2,18 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useStateProvider } from '../../context/StateContext';
-import { BROWSE_JOBS_ROUTE, SEARCH_JOBS_ROUTE } from '../../utils/constants';
+import { GET_ALL_JOBS_ROUTE, BROWSE_JOBS_ROUTE, SEARCH_JOBS_ROUTE } from '../../utils/constants';
 import { useCookies } from 'react-cookie';
 import { toast } from 'react-toastify';
 import { MagnifyingGlass } from "react-loader-spinner";
 import { IoSearchOutline } from 'react-icons/io5';
 import { FaBriefcase, FaDollarSign, FaClock } from 'react-icons/fa';
+import { handleAuthError, createAuthConfig, requireAuth } from '../../utils/authUtils';
+import { reducerCases } from '../../context/constants';
 
 const BrowseJobs = () => {
   const router = useRouter();
-  const [{ userInfo, isSeller }] = useStateProvider();
+  const [{ userInfo, isSeller }, dispatch] = useStateProvider();
   const [cookies] = useCookies();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,28 +33,46 @@ const BrowseJobs = () => {
 
   const fetchJobs = useCallback(async () => {
     try {
-      const params = {};
+      // Check if any filters are applied
+      const hasFilters = filters.category !== 'all' || 
+                        filters.complexity !== 'all' || 
+                        filters.minBudget || 
+                        filters.maxBudget || 
+                        filters.timeline !== 'all';
       
-      // Add filter parameters
-      if (filters.category !== 'all') params.category = filters.category;
-      if (filters.complexity !== 'all') params.complexity = filters.complexity;
-      if (filters.minBudget) params.minBudget = filters.minBudget;
-      if (filters.maxBudget) params.maxBudget = filters.maxBudget;
-      if (filters.timeline !== 'all') params.timeline = filters.timeline;
+      let endpoint, params = {};
       
-      // Only add auth header if user is logged in
-      const config = { params };
-      if (cookies.jwt) {
-        config.headers = { Authorization: `Bearer ${cookies.jwt}` };
+      if (hasFilters) {
+        // Use browse endpoint with filters
+        endpoint = BROWSE_JOBS_ROUTE;
+        if (filters.category !== 'all') params.category = filters.category;
+        if (filters.complexity !== 'all') params.complexity = filters.complexity;
+        if (filters.minBudget) params.minBudget = filters.minBudget;
+        if (filters.maxBudget) params.maxBudget = filters.maxBudget;
+        if (filters.timeline !== 'all') params.timeline = filters.timeline;
+      } else {
+        // Use getAllJobs endpoint for no filters
+        endpoint = GET_ALL_JOBS_ROUTE;
       }
       
-      const { data } = await axios.get(BROWSE_JOBS_ROUTE, config);
+      // Create auth config with optional authentication
+      const config = createAuthConfig({ params });
+      
+      const { data } = await axios.get(endpoint, config);
       setJobs(data.jobs);
       setFilteredJobs(data.jobs);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching jobs:', error);
-      toast.error('Failed to load jobs');
+      
+      // Handle authentication errors gracefully
+      const authError = handleAuthError(error, false);
+      if (authError.requiresAuth) {
+        // Don't show error toast for auth issues when browsing jobs
+        // This allows unauthenticated users to browse
+      } else {
+        toast.error('Failed to load jobs');
+      }
       setLoading(false);
     }
   }, [filters, cookies.jwt]);
@@ -122,6 +142,16 @@ const BrowseJobs = () => {
   };
 
   const handleApply = (jobId) => {
+    // Check if user is authenticated first
+    if (!userInfo) {
+      // Show login modal
+      dispatch({
+        type: reducerCases.TOGGLE_LOGIN_MODAL,
+        showLoginModal: true,
+      });
+      return;
+    }
+
     if (!isSeller) {
       toast.error('Only sellers/freelancers can apply to jobs. Switch to seller mode to apply.');
       return;
@@ -150,11 +180,8 @@ const BrowseJobs = () => {
       if (filters.minBudget) searchParams.minBudget = filters.minBudget;
       if (filters.maxBudget) searchParams.maxBudget = filters.maxBudget;
       
-      // Only add auth header if user is logged in
-      const config = { params: searchParams };
-      if (cookies.jwt) {
-        config.headers = { Authorization: `Bearer ${cookies.jwt}` };
-      }
+      // Create auth config with optional authentication
+      const config = createAuthConfig({ params: searchParams });
       
       const { data } = await axios.get(SEARCH_JOBS_ROUTE, config);
       setJobs(data.jobs);
@@ -163,7 +190,15 @@ const BrowseJobs = () => {
       setLoading(false); // Set loading to false when search completes
     } catch (error) {
       console.error('Error searching jobs:', error);
-      toast.error('Failed to search jobs');
+      
+      // Handle authentication errors gracefully
+      const authError = handleAuthError(error, false);
+      if (authError.requiresAuth) {
+        // Don't show error toast for auth issues when searching jobs
+        // This allows unauthenticated users to search
+      } else {
+        toast.error('Failed to search jobs');
+      }
       setIsSearching(false);
       setLoading(false); // Set loading to false even on error
     }

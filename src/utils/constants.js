@@ -8,6 +8,7 @@ export const ORDER_ROUTES = `${API_URL}/orders`;
 export const MESSAGE_ROUTES = `${API_URL}/messages`;
 export const USER_ROUTES = `${API_URL}/user`;
 export const JOB_ROUTES = `${API_URL}/jobs`;
+export const CATEGORY_ROUTES = `${API_URL}/categories`;
 export const DISPUTE_ROUTES = `${API_URL}/disputes`;
 export const DASHBOARD_DATA_ROUTES = `${API_URL}/dashboard`;
 
@@ -16,6 +17,11 @@ export const LOGIN_ROUTE = `${AUTH_ROUTES}/login`;
 export const GET_USER_INFO = `${AUTH_ROUTES}/get-user-info`;
 export const SET_USER_INFO = `${AUTH_ROUTES}/set-user-info`;
 export const SET_USER_IMAGE = `${AUTH_ROUTES}/set-user-image`;
+
+// Category Routes
+export const GET_JOB_CATEGORIES = `${CATEGORY_ROUTES}/jobs`;
+export const GET_GIG_CATEGORIES = `${CATEGORY_ROUTES}/gigs`;
+export const GET_ALL_CATEGORIES = `${CATEGORY_ROUTES}/all`;
 
 export const ADD_GIG_ROUTE = `${GIG_ROUTES}/add`;
 export const GET_ALL_USER_GIGS_ROUTE = `${GIG_ROUTES}`;
@@ -51,6 +57,7 @@ export const PORTFOLIO_ROUTE = `${USER_ROUTES}/portfolio`;
 
 // Jobs & Applications
 export const CREATE_JOB_ROUTE = `${JOB_ROUTES}/create`;
+export const GET_ALL_JOBS_ROUTE = `${JOB_ROUTES}/all`;
 export const BROWSE_JOBS_ROUTE = `${JOB_ROUTES}/browse`;
 export const SEARCH_JOBS_ROUTE = `${JOB_ROUTES}/search`;
 export const GET_JOB_APPLICATIONS_ROUTE = `${JOB_ROUTES}`; // use as `${GET_JOB_APPLICATIONS_ROUTE}/${jobId}/applications`

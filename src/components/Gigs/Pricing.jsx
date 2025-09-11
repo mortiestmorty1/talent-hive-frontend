@@ -4,10 +4,43 @@ import { useRouter } from "next/router";
 import { FiClock, FiRefreshCcw } from "react-icons/fi";
 import { BsCheckLg } from "react-icons/bs";
 import { BiRightArrowAlt } from "react-icons/bi";
+import { reducerCases } from "../../context/constants";
 
 const Pricing = () => {
-  const [{ gigData, userInfo }] = useStateProvider();
+  const [{ gigData, userInfo }, dispatch] = useStateProvider();
   const router = useRouter();
+
+  const handleOrderGig = () => {
+    // Check if user is authenticated first
+    if (!userInfo) {
+      // Show login modal
+      dispatch({
+        type: reducerCases.TOGGLE_LOGIN_MODAL,
+        showLoginModal: true,
+      });
+      return;
+    }
+    
+    // Proceed to checkout
+    router.push(`/checkout?gigId=${gigData.id}`);
+  };
+
+  const handleContactMe = () => {
+    // Check if user is authenticated first
+    if (!userInfo) {
+      // Show login modal
+      dispatch({
+        type: reducerCases.TOGGLE_LOGIN_MODAL,
+        showLoginModal: true,
+      });
+      return;
+    }
+    
+    // Proceed to contact/messaging functionality
+    // For now, we'll show a toast message
+    // You can implement actual messaging functionality here
+    alert('Contact functionality will be implemented here');
+  };
   return (
     <>
       {gigData && (
@@ -51,7 +84,7 @@ const Pricing = () => {
             ) : (
               <button
                 className="flex items-center bg-[#1DBF73] text-white py-2 justify-center font-bold text-lg relative rounded"
-                onClick={() => router.push(`/checkout?gigId=${gigData.id}`)}
+                onClick={handleOrderGig}
               >
                 <span>Continue</span>
                 <BiRightArrowAlt className="text-2xl absolute right-4" />
@@ -60,7 +93,10 @@ const Pricing = () => {
           </div>
           {gigData.userId !== userInfo?.id && (
             <div className="flex items-center justify-center mt-5">
-              <button className=" w-5/6 hover:bg-[#74767e] py-1 border border-[#74767e] px-5 text-[#6c6d75] hover:text-white transition-all duration-300 text-lg rounded font-bold">
+              <button 
+                className=" w-5/6 hover:bg-[#74767e] py-1 border border-[#74767e] px-5 text-[#6c6d75] hover:text-white transition-all duration-300 text-lg rounded font-bold"
+                onClick={handleContactMe}
+              >
                 Contact Me
               </button>
             </div>
