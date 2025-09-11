@@ -135,6 +135,14 @@ const MyJobs = () => {
                   >
                     View Matches
                   </button>
+                  {(job.status === 'IN_PROGRESS' || job.status === 'PENDING_COMPLETION') && (
+                    <button
+                      onClick={() => router.push(`/jobs/${job.id}/workspace`)}
+                      className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm"
+                    >
+                      Workspace
+                    </button>
+                  )}
                   <button
                     onClick={() => handleJobClick(job.id)}
                     className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm"

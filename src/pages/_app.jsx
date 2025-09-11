@@ -9,6 +9,7 @@ import "react-toastify/dist/ReactToastify.min.css";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { StateProvider, useStateProvider } from "../context/StateContext";
+import { SocketProvider } from "../context/SocketContext";
 import reducer, { initialState } from "../context/StateReducer";
 
 // Component that can access the state context
@@ -48,7 +49,9 @@ export default function App({ Component, pageProps }) {
   const router = useRouter();
   return (
     <StateProvider initialState={initialState} reducer={reducer}>
-      <AppContent Component={Component} pageProps={pageProps} router={router} />
+      <SocketProvider>
+        <AppContent Component={Component} pageProps={pageProps} router={router} />
+      </SocketProvider>
     </StateProvider>
   );
 }

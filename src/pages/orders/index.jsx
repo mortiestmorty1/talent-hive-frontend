@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useCookies } from "react-cookie";
 import { useStateProvider } from "../../context/StateContext";
+import { useSocket } from "../../context/SocketContext";
 import { toast } from "react-toastify";
 import { GET_BUYER_ORDERS, GET_SELLER_ORDERS, GET_CLIENT_JOB_ORDERS_ROUTE, GET_FREELANCER_JOB_ORDERS_ROUTE } from "../../utils/constants";
 import axios from "axios";
@@ -17,6 +18,12 @@ const AllOrders = () => {
   const [{ userInfo, isSeller }] = useStateProvider();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("gigs");
+  const { 
+    onOrderStatusChange, 
+    onJobStatusChange, 
+    onApplicationStatusChange,
+    connected 
+  } = useSocket();
 
   useEffect(() => {
     const getOrders = async () => {
@@ -54,6 +61,77 @@ const AllOrders = () => {
       getOrders();
     }
   }, [userInfo, isSeller, cookies.jwt]);
+
+  // Real-time update listeners
+  useEffect(() => {
+    if (!connected) return;
+
+    // Listen for order status changes
+    const unsubscribeOrderStatus = onOrderStatusChange((data) => {
+      console.log('🔄 Real-time order status update:', data);
+      
+      // Update gig orders
+      setGigOrders(prevOrders => 
+        prevOrders.map(order => 
+          order.id === data.orderId 
+            ? { ...order, status: data.newStatus }
+            : order
+        )
+      );
+      
+      // Show notification
+      toast.info(`Order status updated to ${data.newStatus}`);
+    });
+
+    // Listen for job status changes
+    const unsubscribeJobStatus = onJobStatusChange((data) => {
+      console.log('🔄 Real-time job status update:', data);
+      
+      // Update job orders
+      setJobOrders(prevOrders => 
+        prevOrders.map(order => {
+          const job = isSeller ? order.job : order;
+          if (job.id === data.jobId) {
+            return isSeller 
+              ? { ...order, job: { ...order.job, status: data.newStatus } }
+              : { ...order, status: data.newStatus };
+          }
+          return order;
+        })
+      );
+      
+      // Show notification
+      toast.info(`Job status updated to ${data.newStatus}`);
+    });
+
+    // Listen for application status changes
+    const unsubscribeApplicationStatus = onApplicationStatusChange((data) => {
+      console.log('🔄 Real-time application status update:', data);
+      
+      // Refresh job orders to get updated data
+      const refreshJobOrders = async () => {
+        try {
+          const jobOrdersUrl = isSeller ? GET_FREELANCER_JOB_ORDERS_ROUTE : GET_CLIENT_JOB_ORDERS_ROUTE;
+          const { data: jobData } = await axios.get(jobOrdersUrl, {
+            headers: { Authorization: `Bearer ${cookies.jwt}` },
+          });
+          setJobOrders(jobData.orders || []);
+        } catch (error) {
+          console.error("Error refreshing job orders:", error);
+        }
+      };
+      
+      refreshJobOrders();
+      toast.info(`Application ${data.status.toLowerCase()}`);
+    });
+
+    // Cleanup listeners
+    return () => {
+      unsubscribeOrderStatus();
+      unsubscribeJobStatus();
+      unsubscribeApplicationStatus();
+    };
+  }, [connected, isSeller, cookies.jwt, onOrderStatusChange, onJobStatusChange, onApplicationStatusChange]);
 
   if (loading) {
     return (
@@ -219,7 +297,7 @@ const AllOrders = () => {
                       >
                         <FaCog size={20} />
                       </Link>
-                      {job.status === 'IN_PROGRESS' || job.status === 'PENDING_COMPLETION' && (
+                      {(job.status === 'IN_PROGRESS' || job.status === 'PENDING_COMPLETION') && (
                         <Link
                           className="font-medium text-purple-600 hover:underline"
                           href={`/jobs/${job.id}/workspace`}
@@ -263,13 +341,24 @@ const AllOrders = () => {
     <div className="min-h-[80vh] my-10 mt-0 px-4 md:px-32">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-          <FaHandshake />
-          All Your Orders
-        </h1>
-        <p className="text-lg text-gray-600">
-          View and manage both service orders and job-based work
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+              <FaHandshake />
+              All Your Orders
+            </h1>
+            <p className="text-lg text-gray-600">
+              View and manage both service orders and job-based work
+            </p>
+          </div>
+          {/* Real-time connection indicator */}
+          <div className="flex items-center gap-2">
+            <div className={`w-3 h-3 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+            <span className="text-sm text-gray-600">
+              {connected ? 'Real-time updates active' : 'Connecting...'}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Tabs */}

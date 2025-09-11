@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useStateProvider } from '../../../context/StateContext';
+import { useSocket } from '../../../context/SocketContext';
 import { 
   FaCheckCircle, 
   FaClock, 
@@ -27,6 +28,7 @@ const JobWorkspace = () => {
   const { jobId } = router.query;
   const [{ userInfo, isSeller }] = useStateProvider();
   const [cookies] = useCookies();
+  const { joinJobRoom, leaveJobRoom, onJobMilestoneUpdate, onJobStatusChange, onJobUpdate } = useSocket();
   
   const [loading, setLoading] = useState(true);
   const [job, setJob] = useState(null);
@@ -39,8 +41,79 @@ const JobWorkspace = () => {
     if (jobId && userInfo) {
       fetchJobDetails();
       fetchMilestones();
+      
+      // Join job room for real-time updates
+      joinJobRoom(jobId);
     }
-  }, [jobId, userInfo]);
+    
+    // Cleanup: leave job room when component unmounts
+    return () => {
+      if (jobId) {
+        leaveJobRoom(jobId);
+      }
+    };
+  }, [jobId, userInfo, joinJobRoom, leaveJobRoom]);
+
+  // Real-time milestone update listeners
+  useEffect(() => {
+    if (!jobId) return;
+
+    const unsubscribeMilestoneUpdate = onJobMilestoneUpdate((data) => {
+      console.log('Real-time milestone update received:', data);
+      
+      if (data.updateType === 'milestone_added') {
+        // Add new milestone to the list
+        setMilestones(prev => [data.milestone, ...prev]);
+        toast.success('New milestone added!');
+      } else if (data.updateType === 'milestone_status_updated') {
+        // Update existing milestone
+        setMilestones(prev => prev.map(milestone => 
+          milestone.id === data.milestone.id ? data.milestone : milestone
+        ));
+        toast.success('Milestone status updated!');
+      }
+    });
+
+    return () => {
+      unsubscribeMilestoneUpdate();
+    };
+  }, [jobId, onJobMilestoneUpdate]);
+
+  // Real-time job status update listeners
+  useEffect(() => {
+    if (!jobId) return;
+
+    const unsubscribeJobStatusChange = onJobStatusChange((data) => {
+      console.log('Real-time job status update received:', data);
+      
+      // Update job status in real-time
+      setJob(prev => prev ? { ...prev, status: data.newStatus } : null);
+      toast.success(`Job status updated to ${data.newStatus}!`);
+    });
+
+    return () => {
+      unsubscribeJobStatusChange();
+    };
+  }, [jobId, onJobStatusChange]);
+
+  // Real-time job progress update listeners
+  useEffect(() => {
+    if (!jobId) return;
+
+    const unsubscribeJobUpdate = onJobUpdate((data) => {
+      console.log('Real-time job update received:', data);
+      
+      if (data.updateType === 'progress_updated') {
+        // Update job progress in real-time
+        setJob(prev => prev ? { ...prev, progress: data.progress } : null);
+        toast.success(`Job progress updated to ${data.progress}%!`);
+      }
+    });
+
+    return () => {
+      unsubscribeJobUpdate();
+    };
+  }, [jobId, onJobUpdate]);
 
   const fetchJobDetails = async () => {
     try {
@@ -380,13 +453,13 @@ const JobWorkspace = () => {
                         <FaCheckCircle className="w-4 h-4 mr-2" />
                         Approve Completion
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => updateJobStatus('IN_PROGRESS')}
                         className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 flex items-center"
                       >
                         <FaEdit className="w-4 h-4 mr-2" />
                         Request Changes
-                      </button>
+                      </button> */}
                     </div>
                   )}
                   {job.status === 'COMPLETED' && (
@@ -534,19 +607,39 @@ const JobWorkspace = () => {
                             ></div>
                           </div>
                         </div>
-                        {isSeller && !isJobCompleted && (
+                        {isAcceptedFreelancer && !isJobCompleted && (
                           <div className="flex space-x-1">
-                            <button
-                              onClick={() => updateMilestoneStatus(milestone.id, 'IN_PROGRESS')}
-                              className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-                            >
-                              Start
-                            </button>
+                            {milestone.status === 'PENDING' && (
+                              <button
+                                onClick={() => updateMilestoneStatus(milestone.id, 'IN_PROGRESS')}
+                                className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                              >
+                                Start
+                              </button>
+                            )}
+                            {milestone.status === 'IN_PROGRESS' && (
+                              <button
+                                onClick={() => updateMilestoneStatus(milestone.id, 'PENDING_COMPLETION')}
+                                className="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
+                              >
+                                Request Completion
+                              </button>
+                            )}
+                          </div>
+                        )}
+                        {isJobClient && !isJobCompleted && milestone.status === 'PENDING_COMPLETION' && (
+                          <div className="flex space-x-1">
                             <button
                               onClick={() => updateMilestoneStatus(milestone.id, 'COMPLETED')}
                               className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
                             >
-                              Complete
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => updateMilestoneStatus(milestone.id, 'IN_PROGRESS')}
+                              className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+                            >
+                              Reject
                             </button>
                           </div>
                         )}

@@ -82,9 +82,19 @@ function Index() {
                 className="shadow-md h-max p-10 flex flex-col gap-2 cursor-pointer hover:shadow-xl transition-all duration-300"
                 onClick={() => router.push("/orders")}
               >
-                <h2 className="text-xl">Total Orders</h2>
+                <h2 className="text-xl">Gig Orders</h2>
                 <h3 className="text-[#1DBF73] text-3xl font-extrabold">
                   {dashboardData?.orders}
+                </h3>
+              </div>
+
+              <div
+                className="shadow-md h-max p-10 flex flex-col gap-2 cursor-pointer hover:shadow-xl transition-all duration-300"
+                onClick={() => router.push("/orders")}
+              >
+                <h2 className="text-xl">Job Orders</h2>
+                <h3 className="text-[#1DBF73] text-3xl font-extrabold">
+                  {dashboardData?.jobOrders || 0}
                 </h3>
               </div>
 

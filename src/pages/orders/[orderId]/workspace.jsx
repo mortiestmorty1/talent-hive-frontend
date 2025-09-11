@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useStateProvider } from '../../../context/StateContext';
+import { useSocket } from '../../../context/SocketContext';
 import { 
   FaCheckCircle, 
   FaClock, 
@@ -27,6 +28,7 @@ const GigWorkspace = () => {
   const { orderId } = router.query;
   const [{ userInfo, isSeller }] = useStateProvider();
   const [cookies] = useCookies();
+  const { joinOrderRoom, leaveOrderRoom, onOrderStatusChange, onMilestoneUpdate } = useSocket();
   
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState(null);
@@ -39,8 +41,50 @@ const GigWorkspace = () => {
     if (orderId) {
       fetchOrderDetails();
       fetchMilestones();
+      
+      // Join order room for real-time updates
+      joinOrderRoom(orderId);
     }
-  }, [orderId]);
+    
+    // Cleanup: leave order room when component unmounts
+    return () => {
+      if (orderId) {
+        leaveOrderRoom(orderId);
+      }
+    };
+  }, [orderId, joinOrderRoom, leaveOrderRoom]);
+
+  // Real-time update listeners
+  useEffect(() => {
+    if (!orderId) return;
+
+    // Listen for order status changes
+    const unsubscribeOrderStatus = onOrderStatusChange((data) => {
+      if (data.orderId === orderId) {
+        console.log('🔄 Real-time order status update in workspace:', data);
+        setOrder(prevOrder => ({
+          ...prevOrder,
+          status: data.newStatus
+        }));
+        
+        toast.info(`Order status updated to ${data.newStatus}`);
+      }
+    });
+
+    // Listen for milestone updates
+    const unsubscribeMilestone = onMilestoneUpdate((data) => {
+      if (data.orderId === orderId) {
+        console.log('🔄 Real-time milestone update in workspace:', data);
+        fetchMilestones(); // Refresh milestones
+        toast.info('Milestone updated');
+      }
+    });
+
+    return () => {
+      unsubscribeOrderStatus();
+      unsubscribeMilestone();
+    };
+  }, [orderId, onOrderStatusChange, onMilestoneUpdate]);
 
   const fetchOrderDetails = async () => {
     try {
@@ -345,13 +389,13 @@ const GigWorkspace = () => {
                         <FaCheckCircle className="w-4 h-4 mr-2" />
                         Approve Completion
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => updateOrderStatus('IN_PROGRESS')}
                         className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 flex items-center"
                       >
                         <FaEdit className="w-4 h-4 mr-2" />
                         Request Changes
-                      </button>
+                      </button> */}
                     </div>
                   )}
                   {order?.status === 'COMPLETED' && (
@@ -516,12 +560,12 @@ const GigWorkspace = () => {
                               >
                                 Approve
                               </button>
-                              <button
+                              {/* <button
                                 onClick={() => updateMilestoneStatus(milestone.id, 'IN_PROGRESS')}
                                 className="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200"
                               >
                                 Request Changes
-                              </button>
+                              </button> */}
                             </>
                           )}
                           

@@ -151,6 +151,14 @@ const JobDetails = () => {
               >
                 View Freelancer Matches
               </button>
+              {(job.status === 'IN_PROGRESS' || job.status === 'PENDING_COMPLETION') && (
+                <button
+                  onClick={() => router.push(`/jobs/${jobId}/workspace`)}
+                  className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                >
+                  Workspace
+                </button>
+              )}
               <button
                 onClick={() => router.push('/jobs/my-jobs')}
                 className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
@@ -161,12 +169,23 @@ const JobDetails = () => {
           ) : (
             <div className="flex flex-col gap-3">
               {isSeller ? (
-                <button
-                  onClick={handleApply}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-                >
-                  Apply for This Job
-                </button>
+                <>
+                  {(job.status === 'IN_PROGRESS' || job.status === 'PENDING_COMPLETION') && job.acceptedFreelancerId === userInfo?.id ? (
+                    <button
+                      onClick={() => router.push(`/jobs/${jobId}/workspace`)}
+                      className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                    >
+                      Go to Workspace
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleApply}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                    >
+                      Apply for This Job
+                    </button>
+                  )}
+                </>
               ) : (
                 <div className="text-center">
                   <button
