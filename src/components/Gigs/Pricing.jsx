@@ -5,9 +5,10 @@ import { FiClock, FiRefreshCcw } from "react-icons/fi";
 import { BsCheckLg } from "react-icons/bs";
 import { BiRightArrowAlt } from "react-icons/bi";
 import { reducerCases } from "../../context/constants";
+import { toast } from "react-toastify";
 
 const Pricing = () => {
-  const [{ gigData, userInfo }, dispatch] = useStateProvider();
+  const [{ gigData, userInfo, isSeller }, dispatch] = useStateProvider();
   const router = useRouter();
 
   const handleOrderGig = () => {
@@ -17,6 +18,19 @@ const Pricing = () => {
       dispatch({
         type: reducerCases.TOGGLE_LOGIN_MODAL,
         showLoginModal: true,
+      });
+      return;
+    }
+
+    // Prevent sellers from purchasing gigs
+    if (isSeller) {
+      toast.error('Sellers cannot purchase gigs. Please switch to Buyer mode to purchase services.', {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
       });
       return;
     }
@@ -82,13 +96,21 @@ const Pricing = () => {
                 <BiRightArrowAlt className="text-2xl absolute right-4" />
               </button>
             ) : (
-              <button
-                className="flex items-center bg-[#1DBF73] text-white py-2 justify-center font-bold text-lg relative rounded"
-                onClick={handleOrderGig}
-              >
-                <span>Continue</span>
-                <BiRightArrowAlt className="text-2xl absolute right-4" />
-              </button>
+              <>
+                <button
+                  className={`flex items-center ${isSeller ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#1DBF73] hover:bg-[#19a463]'} text-white py-2 justify-center font-bold text-lg relative rounded transition-colors`}
+                  onClick={handleOrderGig}
+                  disabled={isSeller}
+                >
+                  <span>{isSeller ? 'Switch to Buyer Mode' : 'Continue'}</span>
+                  <BiRightArrowAlt className="text-2xl absolute right-4" />
+                </button>
+                {isSeller && (
+                  <p className="text-center text-sm text-red-600 mt-2">
+                    ⚠️ You must switch to Buyer mode to purchase gigs
+                  </p>
+                )}
+              </>
             )}
           </div>
           {gigData.userId !== userInfo?.id && (

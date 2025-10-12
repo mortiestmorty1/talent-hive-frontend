@@ -9,7 +9,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { HOST } from "../../utils/constants";
 import { SiGooglemessages } from "react-icons/si";
-import { FaBriefcase, FaBox, FaHandshake, FaDollarSign, FaClock, FaUser, FaCog, FaExternalLinkAlt } from "react-icons/fa";
+import { FaBriefcase, FaBox, FaHandshake, FaDollarSign, FaClock, FaUser, FaCog, FaExternalLinkAlt, FaStar } from "react-icons/fa";
 
 const AllOrders = () => {
   const [cookies] = useCookies();
@@ -152,6 +152,7 @@ const AllOrders = () => {
             <th scope="col" className="px-6 py-3">Price</th>
             <th scope="col" className="px-6 py-3">Delivery Time</th>
             <th scope="col" className="px-6 py-3">{isSeller ? "Ordered By" : "Seller"}</th>
+            <th scope="col" className="px-6 py-3">Status</th>
             <th scope="col" className="px-6 py-3">Order Date</th>
             <th scope="col" className="px-6 py-3">Actions</th>
           </tr>
@@ -189,6 +190,16 @@ const AllOrders = () => {
                   <span>{(isSeller ? order.buyer : order.gig.createdBy)?.fullName || (isSeller ? order.buyer : order.gig.createdBy)?.username}</span>
                 </div>
               </td>
+              <td className="px-6 py-4">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  order.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                  order.status === 'PENDING_COMPLETION' ? 'bg-orange-100 text-orange-800' :
+                  order.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {order.status || 'IN_PROGRESS'}
+                </span>
+              </td>
               <td className="px-6 py-4">{order.createdAt.split("T")[0]}</td>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
@@ -206,6 +217,15 @@ const AllOrders = () => {
                   >
                     <FaCog size={20} />
                   </Link>
+                  {!isSeller && order.status === 'COMPLETED' && (
+                    <Link
+                      className="font-medium text-yellow-600 hover:underline"
+                      href={`/gig/${order.gigId}`}
+                      title="Leave Review"
+                    >
+                      <FaStar fill="#FFA500" size={20} />
+                    </Link>
+                  )}
                 </div>
               </td>
             </tr>

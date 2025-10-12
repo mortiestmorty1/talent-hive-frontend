@@ -8,11 +8,14 @@ A modern, responsive frontend application for TalentHive - a freelance marketpla
 - **Dashboard**: Comprehensive user dashboard for buyers and sellers
 - **Gig Management**: Create, edit, and manage freelance gigs
 - **Job Posting**: Post and manage job opportunities
-- **Order Management**: Track orders and payments
+- **Order Management**: Track orders and payments with status indicators
 - **Payment Integration**: Secure payments with Stripe
-- **Real-time Messaging**: Built-in messaging system
+- **Real-time Messaging**: Built-in messaging system with instant notifications
+- **Review System**: Verified purchase reviews for completed orders
+- **Dispute Resolution**: Built-in dispute handling and mediation system
 - **Responsive Design**: Mobile-first design with Tailwind CSS
 - **File Upload**: Support for portfolio and project files
+- **Role-Based Access**: Separate workflows for buyers and sellers
 
 ## 🛠️ Tech Stack
 
@@ -130,15 +133,19 @@ The application uses Tailwind CSS for styling. Key design features:
 - Browse and search gigs
 - Post job requirements
 - Manage orders and payments
-- Communicate with sellers
-- Leave reviews and ratings
+- Real-time order status tracking
+- Communicate with sellers via instant messaging
+- Leave verified reviews and ratings after order completion
+- Access dispute resolution if needed
 
 ### For Sellers
 - Create and manage gigs
-- Apply for jobs
-- Manage portfolio
-- Track earnings
-- Handle customer communications
+- Apply for jobs with proposals
+- Manage portfolio and certifications
+- Track earnings and analytics
+- Handle customer communications with real-time chat
+- Request order completion approval
+- **Note**: Sellers cannot purchase gigs (must switch to buyer mode)
 
 ## 🔒 Security
 
@@ -181,6 +188,45 @@ If you encounter any issues or have questions:
 1. Check the [Backend Repository](https://github.com/mortiestmorty1/talent-hive-backend.git) for backend-related issues
 2. Create an issue in this repository
 3. Contact the development team
+
+## 📝 Recent Updates
+
+### Latest Features (v1.0.1)
+
+1. **Real-time Message Notifications** 🔔
+   - Toast notifications appear when you receive new messages
+   - Works for both gig orders and job messages
+   - Auto-dismiss after 5 seconds with sender information
+
+2. **Enhanced Order Review System** ⭐
+   - Buyers can now leave reviews after order completion
+   - "Leave Review" button appears in orders page for completed orders
+   - Reviews are automatically marked as verified purchases
+   - Visual status badges show order progress
+
+3. **Seller Purchase Prevention** 🚫
+   - Sellers cannot purchase gigs (prevents confusion)
+   - Clear visual feedback with disabled buttons
+   - Toast notifications guide users to switch modes
+   - Checkout page protection prevents workarounds
+
+### How These Features Work
+
+**Message Notifications:**
+- Automatically appear when someone sends you a message
+- Click to dismiss or wait for auto-dismiss
+- Shows sender's name for context
+
+**Review System:**
+- Order must be completed (status = COMPLETED)
+- Star icon appears in orders table for buyers
+- Click to navigate to gig page with review form
+- Submit detailed ratings and comments
+
+**Role-Based Purchasing:**
+- Sellers see disabled "Switch to Buyer Mode" button on gigs
+- Warning message explains the restriction
+- Easy role toggle in navigation bar
 
 ## 🔗 Related Repositories
 

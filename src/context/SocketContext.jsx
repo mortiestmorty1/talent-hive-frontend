@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { useCookies } from 'react-cookie';
+import { toast } from 'react-toastify';
 import { HOST } from '../utils/constants';
 
 const SocketContext = createContext();
@@ -59,6 +60,33 @@ export const SocketProvider = ({ children }) => {
       newSocket.on('reconnect_failed', () => {
         console.error('❌ WebSocket reconnection failed');
         setConnected(false);
+      });
+
+      // Listen for new messages globally and show toast notifications
+      newSocket.on('new_message', (data) => {
+        console.log('📨 New message received:', data);
+        // Show toast notification for new messages
+        toast.info(`New message from ${data.sender?.fullName || data.sender?.username || 'someone'}`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      });
+
+      // Listen for new job messages globally
+      newSocket.on('new_job_message', (data) => {
+        console.log('📨 New job message received:', data);
+        toast.info(`New job message from ${data.sender?.fullName || data.sender?.username || 'someone'}`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       });
 
       setSocket(newSocket);

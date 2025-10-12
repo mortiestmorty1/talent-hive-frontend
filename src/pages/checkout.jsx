@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { useCookies } from "react-cookie";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
+import { useStateProvider } from "../context/StateContext";
 
 import CheckoutForm from "../components/CheckoutForm";
 import axios from "axios";
@@ -16,11 +17,22 @@ const checkout = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [cookies] = useCookies();
+  const [{ isSeller, userInfo }] = useStateProvider();
 
   const router = useRouter();
   const { gigId } = router.query;
 
   useEffect(() => {
+    // Check if user is a seller and prevent checkout
+    if (isSeller) {
+      toast.error('Sellers cannot purchase gigs. Please switch to Buyer mode.', {
+        position: "top-center",
+        autoClose: 3000,
+      });
+      router.push('/');
+      return;
+    }
+
     const createOrder = async () => {
       if (!gigId) {
         setError("No gig ID provided");
@@ -62,10 +74,10 @@ const checkout = () => {
       }
     };
 
-    if (gigId) {
+    if (gigId && !isSeller) {
       createOrder();
     }
-  }, [gigId, cookies.jwt]);
+  }, [gigId, cookies.jwt, isSeller, router]);
 
   const appearance = {
     theme: "stripe",
