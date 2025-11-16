@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useStateProvider } from '../context/StateContext';
+import { useCookies } from 'react-cookie';
+import { GET_DASHBOARD_DATA } from '../utils/constants';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 import { 
   FaUser, 
   FaSearch, 
@@ -18,6 +22,31 @@ import {
 const Dashboard = () => {
   const router = useRouter();
   const [{ userInfo, isSeller }] = useStateProvider();
+  const [cookies] = useCookies();
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  // Fetch dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      if (!userInfo) return;
+
+      try {
+        setLoadingStats(true);
+        const { data } = await axios.get(GET_DASHBOARD_DATA, {
+          headers: { Authorization: `Bearer ${cookies.jwt}` }
+        });
+        setDashboardData(data.dashboardData);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        toast.error('Failed to load dashboard stats');
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [userInfo, cookies.jwt]);
 
   const dashboardItems = isSeller ? [
     // Seller/Freelancer Dashboard
@@ -183,22 +212,61 @@ const Dashboard = () => {
       <div className="bg-white rounded-xl shadow-lg p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Stats</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">0</div>
-            <div className="text-sm text-gray-600">Active Orders</div>
-          </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">0</div>
-            <div className="text-sm text-gray-600">Completed Projects</div>
-          </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600">0</div>
-            <div className="text-sm text-gray-600">Job Applications</div>
-          </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-2xl font-bold text-orange-600">⭐ 5.0</div>
-            <div className="text-sm text-gray-600">Average Rating</div>
-          </div>
+          {loadingStats ? (
+            // Loading skeleton
+            <>
+              <div className="text-center p-4 bg-gray-50 rounded-lg animate-pulse">
+                <div className="h-8 bg-gray-300 rounded mb-2"></div>
+                <div className="h-4 bg-gray-300 rounded"></div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg animate-pulse">
+                <div className="h-8 bg-gray-300 rounded mb-2"></div>
+                <div className="h-4 bg-gray-300 rounded"></div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg animate-pulse">
+                <div className="h-8 bg-gray-300 rounded mb-2"></div>
+                <div className="h-4 bg-gray-300 rounded"></div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg animate-pulse">
+                <div className="h-8 bg-gray-300 rounded mb-2"></div>
+                <div className="h-4 bg-gray-300 rounded"></div>
+              </div>
+            </>
+          ) : (
+            // Real data
+            <>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">
+                  {dashboardData ? (isSeller ? dashboardData.orders || 0 : dashboardData.activeOrders || 0) : 0}
+                </div>
+                <div className="text-sm text-gray-600">
+                  {isSeller ? 'Completed Orders' : 'Active Orders'}
+                </div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">
+                  {dashboardData ? (isSeller ? dashboardData.gigs || 0 : dashboardData.completedProjects || 0) : 0}
+                </div>
+                <div className="text-sm text-gray-600">
+                  {isSeller ? 'Total Gigs' : 'Completed Projects'}
+                </div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-purple-600">
+                  {dashboardData ? (isSeller ? dashboardData.unreadMessages || 0 : dashboardData.jobApplications || 0) : 0}
+                </div>
+                <div className="text-sm text-gray-600">
+                  {isSeller ? 'Unread Messages' : 'Job Applications'}
+                </div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-orange-600">
+                  ⭐ {dashboardData ? (isSeller ? 'N/A' : dashboardData.averageRating || 0) : '5.0'}
+                </div>
+                <div className="text-sm text-gray-600">Average Rating</div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

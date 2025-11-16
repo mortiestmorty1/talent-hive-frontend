@@ -13,7 +13,7 @@ import {
   FaChartLine,
   FaUserTie
 } from 'react-icons/fa';
-import { GET_SELLER_DATA, GET_FREELANCER_JOB_ORDERS } from '../../utils/constants';
+import { GET_SELLER_DATA, GET_FREELANCER_JOB_ORDERS_ROUTE } from '../../utils/constants';
 import { useCookies } from 'react-cookie';
 import Link from 'next/link';
 
@@ -56,7 +56,7 @@ const SellerDashboard = () => {
       }
 
       // Fetch job orders
-      const jobOrdersResponse = await fetch(GET_FREELANCER_JOB_ORDERS, {
+      const jobOrdersResponse = await fetch(GET_FREELANCER_JOB_ORDERS_ROUTE, {
         headers: {
           'Authorization': `Bearer ${cookies.jwt}`
         }

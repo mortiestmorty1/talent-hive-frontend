@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useStateProvider } from '../../../context/StateContext';
-import { 
-  FaUser, 
-  FaDollarSign, 
-  FaCalendar, 
-  FaCheckCircle, 
-  FaTimes, 
+import {
+  FaUser,
+  FaDollarSign,
+  FaCalendar,
+  FaCheckCircle,
+  FaTimes,
   FaEye,
-  FaCreditCard
+  FaCreditCard,
+  FaArrowLeft
 } from 'react-icons/fa';
 import { useCookies } from 'react-cookie';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
+import { GET_JOB_ROUTE, GET_JOB_APPLICATIONS_ROUTE, UPDATE_APPLICATION_STATUS_ROUTE } from '../../../utils/constants';
 
 const JobApplications = () => {
   const router = useRouter();
@@ -36,7 +38,7 @@ const JobApplications = () => {
       setLoading(true);
       
       // Fetch job details
-      const jobResponse = await fetch(`/api/jobs/get/${jobId}`, {
+      const jobResponse = await fetch(`${GET_JOB_ROUTE}/${jobId}`, {
         headers: {
           'Authorization': `Bearer ${cookies.jwt}`
         }
@@ -48,7 +50,7 @@ const JobApplications = () => {
       }
 
       // Fetch applications
-      const appsResponse = await fetch(`/api/jobs/${jobId}/applications`, {
+      const appsResponse = await fetch(`${GET_JOB_APPLICATIONS_ROUTE}/${jobId}/applications`, {
         headers: {
           'Authorization': `Bearer ${cookies.jwt}`
         }
@@ -70,7 +72,7 @@ const JobApplications = () => {
     try {
       setUpdatingStatus(true);
       
-      const response = await fetch(`/api/jobs/applications/${applicationId}`, {
+      const response = await fetch(`${UPDATE_APPLICATION_STATUS_ROUTE}/${applicationId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -126,11 +128,22 @@ const JobApplications = () => {
 
   if (!job) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <FaTimes className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Job Not Found</h2>
-          <p className="text-gray-600">The job you're looking for doesn't exist.</p>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center text-blue-600 hover:text-blue-800 mb-8 transition-colors"
+          >
+            <FaArrowLeft className="w-4 h-4 mr-2" />
+            Go Back
+          </button>
+          <div className="flex items-center justify-center">
+            <div className="text-center">
+              <FaTimes className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Job Not Found</h2>
+              <p className="text-gray-600">The job you're looking for doesn't exist.</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -138,11 +151,22 @@ const JobApplications = () => {
 
   if (isSeller) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <FaTimes className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600">Only job clients can view applications.</p>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center text-blue-600 hover:text-blue-800 mb-8 transition-colors"
+          >
+            <FaArrowLeft className="w-4 h-4 mr-2" />
+            Go Back
+          </button>
+          <div className="flex items-center justify-center">
+            <div className="text-center">
+              <FaTimes className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+              <p className="text-gray-600">Only job clients can view applications.</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -150,11 +174,22 @@ const JobApplications = () => {
 
   if (job.clientId !== userInfo.id) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <FaTimes className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600">You can only view applications for your own jobs.</p>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center text-blue-600 hover:text-blue-800 mb-8 transition-colors"
+          >
+            <FaArrowLeft className="w-4 h-4 mr-2" />
+            Go Back
+          </button>
+          <div className="flex items-center justify-center">
+            <div className="text-center">
+              <FaTimes className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+              <p className="text-gray-600">You can only view applications for your own jobs.</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -165,6 +200,13 @@ const JobApplications = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
+          <button
+            onClick={() => router.push(`/jobs/${jobId}`)}
+            className="flex items-center text-blue-600 hover:text-blue-800 mb-4 transition-colors"
+          >
+            <FaArrowLeft className="w-4 h-4 mr-2" />
+            Back to Job Details
+          </button>
           <h1 className="text-3xl font-bold text-gray-900">{job.title}</h1>
           <p className="mt-2 text-gray-600">Job Applications ({applications.length})</p>
         </div>

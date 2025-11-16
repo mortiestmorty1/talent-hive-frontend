@@ -3,17 +3,18 @@ import { useRouter } from 'next/router';
 import { useStateProvider } from '../../../context/StateContext';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
-import { 
-  FaDollarSign, 
-  FaUser, 
-  FaCalendar, 
+import {
+  FaDollarSign,
+  FaUser,
+  FaCalendar,
   FaExclamationTriangle,
   FaCheckCircle,
-  FaArrowLeft
+  FaArrowLeft,
+  FaClock
 } from 'react-icons/fa';
 import { useCookies } from 'react-cookie';
 import { toast } from 'react-toastify';
-import { CREATE_JOB_PAYMENT, CONFIRM_JOB_PAYMENT } from '../../../utils/constants';
+import { GET_JOB_ROUTE, GET_JOB_APPLICATIONS_ROUTE, CREATE_JOB_PAYMENT, CONFIRM_JOB_PAYMENT } from '../../../utils/constants';
 import CheckoutForm from '../../../components/CheckoutForm';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
@@ -41,7 +42,7 @@ const JobPayment = () => {
       setLoading(true);
       
       // Fetch job details
-      const jobResponse = await fetch(`/api/jobs/get/${jobId}`, {
+      const jobResponse = await fetch(`${GET_JOB_ROUTE}/${jobId}`, {
         headers: {
           'Authorization': `Bearer ${cookies.jwt}`
         }
@@ -52,7 +53,7 @@ const JobPayment = () => {
         setJob(jobData);
 
         // Fetch application details
-        const appResponse = await fetch(`/api/jobs/${jobId}/applications`, {
+        const appResponse = await fetch(`${GET_JOB_APPLICATIONS_ROUTE}/${jobId}/applications`, {
           headers: {
             'Authorization': `Bearer ${cookies.jwt}`
           }
@@ -143,11 +144,22 @@ const JobPayment = () => {
 
   if (!job || !application) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <FaExclamationTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Not Available</h2>
-          <p className="text-gray-600">The job or application you're looking for doesn't exist.</p>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center text-blue-600 hover:text-blue-800 mb-8 transition-colors"
+          >
+            <FaArrowLeft className="w-4 h-4 mr-2" />
+            Go Back
+          </button>
+          <div className="flex items-center justify-center">
+            <div className="text-center">
+              <FaExclamationTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Not Available</h2>
+              <p className="text-gray-600">The job or application you're looking for doesn't exist.</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -155,11 +167,67 @@ const JobPayment = () => {
 
   if (isSeller) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <FaExclamationTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600">Only clients can make payments for jobs.</p>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center text-blue-600 hover:text-blue-800 mb-8 transition-colors"
+          >
+            <FaArrowLeft className="w-4 h-4 mr-2" />
+            Go Back
+          </button>
+          <div className="flex items-center justify-center">
+            <div className="text-center">
+              <FaExclamationTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+              <p className="text-gray-600">Only clients can make payments for jobs.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (job.status !== 'COMPLETED') {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center text-blue-600 hover:text-blue-800 mb-8 transition-colors"
+          >
+            <FaArrowLeft className="w-4 h-4 mr-2" />
+            Go Back
+          </button>
+          <div className="flex items-center justify-center">
+            <div className="text-center">
+              <FaClock className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Job In Progress</h2>
+              <p className="text-gray-600 mb-4">
+                You cannot make payment until the job is completed.
+                <br />
+                Current status: <span className="font-semibold capitalize">
+                  {job.status === 'IN_PROGRESS' ? 'In Progress' :
+                   job.status === 'PENDING_COMPLETION' ? 'Pending Completion' :
+                   job.status === 'OPEN' ? 'Open' : job.status}
+                </span>
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                  onClick={() => router.push(`/jobs/${jobId}/manage`)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+                >
+                  View Job Progress
+                </button>
+                <button
+                  onClick={() => router.push(`/jobs/${jobId}/workspace`)}
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors"
+                >
+                  Go to Workspace
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -167,11 +235,22 @@ const JobPayment = () => {
 
   if (application.status !== 'ACCEPTED') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <FaExclamationTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Not Available</h2>
-          <p className="text-gray-600">You can only pay for accepted applications.</p>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center text-blue-600 hover:text-blue-800 mb-8 transition-colors"
+          >
+            <FaArrowLeft className="w-4 h-4 mr-2" />
+            Go Back
+          </button>
+          <div className="flex items-center justify-center">
+            <div className="text-center">
+              <FaExclamationTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Not Available</h2>
+              <p className="text-gray-600">You can only pay for accepted applications.</p>
+            </div>
+          </div>
         </div>
       </div>
     );

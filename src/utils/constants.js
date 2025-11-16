@@ -47,6 +47,8 @@ export const SEND_JOB_MESSAGE = `${MESSAGE_ROUTES}/send-job-message`;
 export const GET_JOB_MESSAGES = `${MESSAGE_ROUTES}/get-job-messages`;
 
 export const GET_SELLER_DATA = `${DASHBOARD_DATA_ROUTES}/seller`;
+export const GET_BUYER_DATA = `${DASHBOARD_DATA_ROUTES}/buyer`;
+export const GET_DASHBOARD_DATA = `${DASHBOARD_DATA_ROUTES}/`;
 
 // Enhanced Profile
 export const GET_PROFILE_EXTRA = `${USER_ROUTES}/profile/extra`;

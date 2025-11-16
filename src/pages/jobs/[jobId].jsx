@@ -142,9 +142,15 @@ const JobDetails = () => {
         )}
 
         {/* Action Buttons */}
-        <div className="flex space-x-4">
+        <div className="flex flex-wrap gap-4">
           {isOwner ? (
             <>
+              <button
+                onClick={() => router.push(`/jobs/${jobId}/applications`)}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              >
+                View Applications ({job.applications ? job.applications.length : 0})
+              </button>
               <button
                 onClick={handleViewMatches}
                 className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
@@ -222,12 +228,34 @@ const JobDetails = () => {
 
       {/* Job Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+        {isOwner ? (
+          <button
+            onClick={() => router.push(`/jobs/${jobId}/applications`)}
+            className="bg-white rounded-lg shadow p-4 text-center hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-200 hover:border-blue-300"
+          >
+            <div className="text-2xl font-bold text-blue-600">
+              {job.applications ? job.applications.length : 0}
+            </div>
+            <div className="text-sm text-gray-600">Applications</div>
+            <div className="text-xs text-blue-500 mt-1">Click to view</div>
+          </button>
+        ) : (
+          <div className="bg-white rounded-lg shadow p-4 text-center">
+            <div className="text-2xl font-bold text-blue-600">
+              {job.applications ? job.applications.length : 0}
+            </div>
+            <div className="text-sm text-gray-600">Applications</div>
+          </div>
+        )}
         <div className="bg-white rounded-lg shadow p-4 text-center">
-          <div className="text-2xl font-bold text-blue-600">0</div>
-          <div className="text-sm text-gray-600">Applications</div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4 text-center">
-          <div className="text-2xl font-bold text-green-600">Open</div>
+          <div className="text-2xl font-bold text-green-600">
+            {job.status === 'OPEN' ? 'Open' :
+             job.status === 'IN_PROGRESS' ? 'In Progress' :
+             job.status === 'PENDING_COMPLETION' ? 'Pending Completion' :
+             job.status === 'COMPLETED' ? 'Completed' :
+             job.status === 'CANCELLED' ? 'Cancelled' :
+             job.status}
+          </div>
           <div className="text-sm text-gray-600">Status</div>
         </div>
         <div className="bg-white rounded-lg shadow p-4 text-center">

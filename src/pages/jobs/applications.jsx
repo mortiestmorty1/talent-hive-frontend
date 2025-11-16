@@ -75,7 +75,7 @@ const JobApplications = () => {
         const { data } = await axios.get(`${GET_JOB_APPLICATIONS_ROUTE}/${selectedJob.id}/applications`, {
           headers: { Authorization: `Bearer ${cookies.jwt}` }
         });
-        setApplications(data);
+        setApplications(data.applications || []);
       } catch (error) {
         console.error('Error fetching applications:', error);
         toast.error('Failed to load applications');
@@ -107,7 +107,7 @@ const JobApplications = () => {
         const { data: appData } = await axios.get(`${GET_JOB_APPLICATIONS_ROUTE}/${selectedJob.id}/applications`, {
           headers: { Authorization: `Bearer ${cookies.jwt}` }
         });
-        setApplications(appData);
+        setApplications(appData.applications || []);
         
         // Refresh the jobs list to update status
         const { data: jobData } = await axios.get(LIST_CLIENT_JOBS_ROUTE, {

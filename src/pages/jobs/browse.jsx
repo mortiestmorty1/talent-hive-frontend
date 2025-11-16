@@ -7,7 +7,7 @@ import { useCookies } from 'react-cookie';
 import { toast } from 'react-toastify';
 import { MagnifyingGlass } from "react-loader-spinner";
 import { IoSearchOutline } from 'react-icons/io5';
-import { FaBriefcase, FaDollarSign, FaClock } from 'react-icons/fa';
+import { FaBriefcase, FaDollarSign, FaClock, FaUser } from 'react-icons/fa';
 import { handleAuthError, createAuthConfig, requireAuth } from '../../utils/authUtils';
 import { reducerCases } from '../../context/constants';
 
@@ -434,6 +434,31 @@ const BrowseJobs = () => {
                 >
                   <h3 className="text-xl font-semibold text-gray-900 mb-2 hover:text-blue-600 transition-colors">{job.title}</h3>
                   <p className="text-gray-600 mb-2">{job.description}</p>
+
+                  {/* Buyer Information - Only show for sellers */}
+                  {isSeller && job.client && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                      <div className="flex items-center mb-1">
+                        <FaUser className="text-blue-600 mr-2 text-sm" />
+                        <span className="text-sm font-medium text-blue-900">Posted by</span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600">Name</label>
+                          <span className="text-gray-900 font-semibold">{job.client.fullName || 'N/A'}</span>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600">Username</label>
+                          <span className="text-gray-600">@{job.client.username || 'N/A'}</span>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600">Buyer ID</label>
+                          <span className="text-gray-900 font-mono text-xs">{job.client.id || 'N/A'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center space-x-4 text-sm text-gray-500">
                     <span className="flex items-center gap-1">
                       <FaDollarSign className="text-green-600" />
@@ -449,6 +474,9 @@ const BrowseJobs = () => {
                       'bg-red-100 text-red-800'
                     }`}>
                       {job.complexity}
+                    </span>
+                    <span className="flex items-center gap-1 text-purple-600">
+                      👥 {job._count?.applications || 0} applicants
                     </span>
                   </div>
                 </div>

@@ -35,20 +35,37 @@ function EnhancedReviewForm({ gigId, onSubmitted }) {
 
   const submit = async () => {
     try {
+      // Basic client-side validation
+      const hasReviewText = reviewText.trim().length > 0;
+      const hasAnyRating = skillSpecificRating > 0 || communicationRating > 0 || timelinessRating > 0 || qualityRating > 0;
+
+      if (!hasReviewText && !hasAnyRating) {
+        toast.error("Please provide a review comment or at least one rating.");
+        return;
+      }
+
+      if (skillSpecificRating > 0 && !skillCategory.trim()) {
+        toast.error("Please specify the skill category when providing a skill rating.");
+        return;
+      }
+
       const payload = {
-        reviewText,
-        skillCategory,
-        skillSpecificRating,
-        communicationRating,
-        timelinessRating,
-        qualityRating,
+        reviewText: reviewText.trim(),
+        skillCategory: skillCategory.trim() || undefined,
+        skillSpecificRating: skillSpecificRating > 0 ? skillSpecificRating : undefined,
+        communicationRating: communicationRating > 0 ? communicationRating : undefined,
+        timelinessRating: timelinessRating > 0 ? timelinessRating : undefined,
+        qualityRating: qualityRating > 0 ? qualityRating : undefined,
       };
+
       const { data, status } = await axios.post(`${ADD_REVIEW_ROUTE}/${gigId}`, payload, {
         headers: { Authorization: `Bearer ${cookies.jwt}` },
       });
+
       if (status === 201) {
         toast.success("Thanks for your review!");
         onSubmitted && onSubmitted(data.newReview);
+        // Reset form
         setReviewText("");
         setSkillCategory("");
         setSkillSpecificRating(0);
@@ -57,7 +74,9 @@ function EnhancedReviewForm({ gigId, onSubmitted }) {
         setQualityRating(0);
       }
     } catch (e) {
-      toast.error(e?.response?.data || "Failed to submit review");
+      const errorMessage = e?.response?.data || "Failed to submit review";
+      toast.error(errorMessage);
+      console.error("Review submission error:", e);
     }
   };
 
